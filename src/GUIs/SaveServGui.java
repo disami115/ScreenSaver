@@ -62,7 +62,8 @@ public class SaveServGui extends JFrame{
 		if(!l.isEmpty() && !p.isEmpty())
 		{
 			try {
-				showMessageDialog(null, s.TrySave(c.getBufferedImage(c.getGraphics()), ssgui));
+				//showMessageDialog(null, s.TrySave(c.getBufferedImage(c.getGraphics()), ssgui));
+				s.TrySave(c.getBufferedImage(c.getGraphics()), ssgui);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				showMessageDialog(null, e1.getMessage());

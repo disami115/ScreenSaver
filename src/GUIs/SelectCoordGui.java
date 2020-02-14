@@ -213,10 +213,9 @@ public class SelectCoordGui extends JFrame implements MouseListener, MouseMotion
 		if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
 			int[] HW = SecG.getImgHW();
 			if(HW[0] == 0 || HW[1] == 0) {
-				HW[0] = 1;
-				HW[1] = 1;
+				img = bf.getSubimage(lastX, lastY, 1, 1);
 			}
-			img = bf.getSubimage(lastX, lastY, HW[1], HW[0]);
+			else img = SecG.c.img;
 			SecG.setNewImage(img);
 			SecG.expand();
 			this.setVisible(false);

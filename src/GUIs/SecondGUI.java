@@ -1,13 +1,14 @@
 package GUIs;
 
 import static java.awt.SystemTray.getSystemTray;
-import static javax.swing.JOptionPane.showMessageDialog;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
@@ -16,9 +17,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import Saves.SaveToFile;
 import Screens.Screen;
@@ -28,6 +33,7 @@ import Canvas.MyCanvas.DrawObjects;
 import Canvas.SystemColorChooserPanel;
 import MouseDraw.DrawObjectNumberRect;
 import MouseDraw.DrawObjectOne;
+import Converter.ByteToList;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -57,6 +63,8 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	private JMenu ColorMenu = new JMenu ();
 	private JMenu SizeMenu = new JMenu ();
 	private JMenu FontMenu = new JMenu ();
+	private JPanel statusPanel = new JPanel();
+	private JLabel statusText = new JLabel();
 	private static double sizeDrawObject = 2.0;
 	public static CanvasPanel CanvPan;
 	public SelectCoordGui g2 = null;
@@ -76,13 +84,18 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	public static Preferences userPrefsColor;
 	private Preferences userPrefsLineSize;
 	private Preferences userPrefsFontSize;
+	public static Preferences userPrefsLink;
 	private JSeparator[] separator = {null, null, null};
 	private boolean isTreyScreen;
+	private static MenuItem linkItem;
 	public static JTextArea textField = new JTextArea();
 	public static int FontSize = 12;
-		
+	public static List<String> link = new ArrayList<String>();
+	public static Menu LinkItemMenu = new Menu("Загрузить с сервера");
+	private static LinkEventListener linkEvLists[];
 	public SecondGUI(Image img) throws IOException, URISyntaxException {
 		super("ScreenSaver");
+		this.setTitle("ScreenSaver LeadVertex.ru");
 		userPrefsPrtScr = Preferences.userRoot().node("config").node("enabledPrtScr");
 		isPrtScr = userPrefsPrtScr.getBoolean("value", isPrtScr);
 		userPrefsColor = Preferences.userRoot().node("config").node("Color");
@@ -100,7 +113,14 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		sizeDrawObject = userPrefsLineSize.getDouble("value", sizeDrawObject);
 		userPrefsFontSize = Preferences.userRoot().node("config").node("FontSize");
 		FontSize = userPrefsFontSize.getInt("value", FontSize);
-		boolean b = true;
+		userPrefsLink = Preferences.userRoot().node("config").node("Link");
+		
+		byte[] bytes = null;
+		bytes = userPrefsLink.getByteArray("value", bytes);
+		ByteToList btl = new ByteToList(bytes);
+		if(bytes != null) btl.getList();
+		
+		boolean b = false;  
 		if(b) {
 			try {
 				GlobalScreen.registerNativeHook();
@@ -210,6 +230,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		RectangleButton.addActionListener(new RectangleButtonEventListener());
 		NumberRectButton.addActionListener(new NumberRectButtonEventListener());
 		OptionButton.addActionListener(new OptionButtonEventListener());
+		statusText.addMouseListener(new MouseStatusListener());
 		Size2.addActionListener(new SizeEventListener(2));
 		Size4.addActionListener(new SizeEventListener(4));
 		Size6.addActionListener(new SizeEventListener(6));
@@ -259,7 +280,11 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	    textField.addKeyListener(this);
 	    textField.setVisible(false);
 	    this.add(textField);
-	    
+	    statusPanel.setLayout(new BorderLayout());
+	    statusPanel.add(new JLabel(""), BorderLayout.CENTER);
+	    statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
+	    setStatusPanelText(" ");
+	    this.add(statusPanel,BorderLayout.SOUTH);
 	    ActionListener exitListener = new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
 	            System.exit(0);
@@ -271,6 +296,21 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	        	g1.expand();
 	        }
 	    };   
+	    
+	    ActionListener aboutListener = new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	        	try {
+					Desktop.getDesktop().browse(new URI("https://github.com/leadvertex/screenshot-app"));
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+	        }
+	    };   
+	    
 	    
 	    ActionListener openListener = new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
@@ -295,7 +335,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	        }
 	    };   
 	    
-	    if (SystemTray.isSupported()) {
+	    if(SystemTray.isSupported()) {
 	    	PopupMenu popup = new PopupMenu();
 	 	    MenuItem exitItem = new MenuItem("Выход");
 	 	    exitItem.addActionListener(exitListener);
@@ -303,11 +343,20 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	 	    OpenItem.addActionListener(openListener);
 	 	    MenuItem expandItem = new MenuItem("Развернуть");
 	 	    expandItem.addActionListener(expandListener);
+	 	    MenuItem aboutItem = new MenuItem("О программе");
+	 	    aboutItem.addActionListener(aboutListener);
 	 	    MenuItem ScreenItem = new MenuItem("Скрин");
 	 	    ScreenItem.addActionListener(new ScreenButtonEventListener());
+	 	    linkEvLists = new LinkEventListener[10];
+	 	    for(int i = 0; i < SecondGUI.link.size() ;i ++) {
+	 	    	linkEvLists[i] = new LinkEventListener(i);
+			}
+	 	    updateLinkOnTray();
 	 	    popup.add(ScreenItem);
 	 	    popup.add(OpenItem);
+	 	    popup.add(LinkItemMenu);
 	 	    popup.add(expandItem);
+	 	    popup.add(aboutItem);
 	 	    popup.add(exitItem);
             icon = new TrayIcon(ico, "hello", popup);
             icon.setImageAutoSize(true);
@@ -327,6 +376,15 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
             });
 	    }
 	    
+	}
+	
+	public static void updateLinkOnTray() {
+		LinkItemMenu.removeAll();
+		for(int i = 0; i < SecondGUI.link.size() ;i ++) {
+			linkItem = new MenuItem((i+1) + ") " + SecondGUI.link.get(i).substring(28));
+			linkItem.addActionListener(linkEvLists[i]);
+			LinkItemMenu.add(linkItem);
+		}
 	}
 	
 	protected void collapse() {
@@ -382,6 +440,29 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		Runtime.getRuntime().gc();
 	}
 	
+	public void doSave() {
+		SaveToFile s = new SaveToFile();
+		s.TrySave(c.getBufferedImage(c.getGraphics()));
+	}
+	
+	public void doServerSave() {
+		setStatusPanelText("Сохраняю на сервер...");
+		Preferences userPrefsIsAuthorized;
+		userPrefsIsAuthorized = Preferences.userRoot().node("config").node("isAuthorized");
+		boolean isAuth = false;
+		isAuth = userPrefsIsAuthorized.getBoolean("value", isAuth);
+		SaveServGui ssgui = new SaveServGui(c);
+		ssgui.setVisible(false);
+		if(isAuth) ssgui.trySave();
+		else setStatusPanelText("Пользователь не авторизован. Для авторизации зайдите в настройки.");
+			//showMessageDialog(null, "Пользователь не авторизован. Для авторизации зайдите в настройки.");
+	}
+	
+	public void openOptions() {
+		OptionsGUI opGUI = new OptionsGUI();
+		opGUI.setVisible(true);
+		g1.setEnabled(false);
+	}
 
 	private void doUnvisible() throws InterruptedException
 	{
@@ -440,7 +521,6 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		}
 	}
 	
-	
 	class FontEventListener implements ActionListener {
 		private int i;
 		FontEventListener(int i){
@@ -454,7 +534,17 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		}
 	}
 	
-	
+	class LinkEventListener implements ActionListener {
+		private int i;
+		
+		LinkEventListener(int i){
+			this.i = i;
+		}
+		public void actionPerformed(ActionEvent e) {
+			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(link.get(i)),null);
+			
+		}
+	}
 	
 	class BrushButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -482,23 +572,14 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 
 	class SaveServButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			Preferences userPrefsIsAuthorized;
-			userPrefsIsAuthorized = Preferences.userRoot().node("config").node("isAuthorized");
-			boolean isAuth = false;
-			isAuth = userPrefsIsAuthorized.getBoolean("value", isAuth);
-			SaveServGui ssgui = new SaveServGui(c);
-			ssgui.setVisible(false);
-			
-			if(isAuth) ssgui.trySave();
-			else showMessageDialog(null, "Пользователь не авторизован. Для авторизации зайдите в настройки.");
+			doServerSave();
 		}
 	}
 	
 	class SaveButtonEventListener implements ActionListener {
 		
 		public void actionPerformed(ActionEvent e) {
-			SaveToFile s = new SaveToFile();
-			s.TrySave(c.getBufferedImage(c.getGraphics()));
+			doSave();
 		}
 	}
 	
@@ -519,15 +600,45 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	
 	class OptionButtonEventListener implements ActionListener {
 		
-		/**
-		 *
-		 */
 		public void actionPerformed(ActionEvent e) {
-			OptionsGUI opGUI = new OptionsGUI();
-			opGUI.setVisible(true);
-			g1.setEnabled(false);
+			openOptions();
 		}
 	}
+	
+	class MouseStatusListener implements MouseListener {
+		
+	
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			if(statusText.getText() == "Пользователь не авторизован. Для авторизации зайдите в настройки.") openOptions();
+			else Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(statusText.getText()),null);
+		}
+	}
+	
 	
 	class BufferButtonEventListener implements ActionListener {
 		
@@ -564,6 +675,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	    }
 		
 		public void actionPerformed(ActionEvent e) {
+			
 			ImageTransferable transferable = new ImageTransferable( c.getImg());
 			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(transferable,null);
 		}
@@ -571,6 +683,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	
 	
 	protected void createColorChooser() {
+		
 		AbstractColorChooserPanel[] oldPanels = colorChooser.getChooserPanels();
 	    for (int i = 0; i < oldPanels.length; i++) {
 	      String clsName = oldPanels[i].getClass().getName();
@@ -591,8 +704,6 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 			sizeDrawObject = ((JSlider) e.getSource()).getValue();
 		}
 	}
-	
-
 
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
@@ -602,14 +713,18 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 
 	@Override
 	public void nativeKeyReleased(NativeKeyEvent e) {
-		if(e.getKeyCode() == NativeKeyEvent.VC_Z && isCtrl) c.setLastGraphics((Graphics2D) c.getGraphics());	
-		if(e.getKeyCode() == NativeKeyEvent.VC_Y && isCtrl) c.setNextGraphics((Graphics2D) c.getGraphics());
 		if(e.getKeyCode() == NativeKeyEvent.VC_CONTROL) isCtrl = false;
-		if(e.getKeyCode() == NativeKeyEvent.VC_PRINTSCREEN && isPrtScr) doScreen();
-		if((c.dOs.name() == "DrawObjectOne" || c.dOs.name() == "DrawObjectNumberRect") && isCtrl) {
-			int i = e.getKeyCode() - 1;
-			if(i>0 && i<10) SecondGUI.changeNumber(c.dOs.name(), i);
+		if(g1.isFocused()) {
+			if(e.getKeyCode() == NativeKeyEvent.VC_Z && isCtrl) c.setLastGraphics((Graphics2D) c.getGraphics());	
+			if(e.getKeyCode() == NativeKeyEvent.VC_Y && isCtrl) c.setNextGraphics((Graphics2D) c.getGraphics());
+			if(e.getKeyCode() == NativeKeyEvent.VC_ENTER && isCtrl && !textField.isVisible()) doServerSave();
+			if(e.getKeyCode() == NativeKeyEvent.VC_S && isCtrl && g1.isFocused()) doSave();
+			if((c.dOs.name() == "DrawObjectOne" || c.dOs.name() == "DrawObjectNumberRect") && isCtrl) {
+				int i = e.getKeyCode() - 1;
+				if(i>0 && i<10) SecondGUI.changeNumber(c.dOs.name(), i);
+			}
 		}
+		if(e.getKeyCode() == NativeKeyEvent.VC_PRINTSCREEN && isPrtScr) doScreen();
 	}
 
 	@Override
@@ -719,8 +834,14 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 				e1.printStackTrace();
 			}
 		}
-		
-		
 	}
+	
+	public void setStatusPanelText(String text) {
+		statusText.setText(text);
+		statusPanel.removeAll();
+		statusPanel.add(statusText);
+		//g1.repaint();
+	}
+
 	
 }
