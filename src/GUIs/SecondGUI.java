@@ -311,7 +311,6 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	        }
 	    };   
 	    
-	    
 	    ActionListener openListener = new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
 	        	Image openImg = null;
@@ -375,7 +374,6 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 
             });
 	    }
-	    this.collapse();
 	}
 	
 	public static void updateLinkOnTray() {
