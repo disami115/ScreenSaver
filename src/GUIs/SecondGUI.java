@@ -446,7 +446,9 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	}
 	
 	public void doServerSave() {
-		setStatusPanelText("Сохраняю на сервер...");
+		setStatusPanelText("Сохраняю на сервер...");//
+		statusText.repaint();
+		statusPanel.repaint();
 		Preferences userPrefsIsAuthorized;
 		userPrefsIsAuthorized = Preferences.userRoot().node("config").node("isAuthorized");
 		boolean isAuth = false;
@@ -840,7 +842,11 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		statusText.setText(text);
 		statusPanel.removeAll();
 		statusPanel.add(statusText);
-		//g1.repaint();
+		g1.paintAll(getGraphics());
+	}
+	
+	public String getStatusPanelText() {
+		return statusText.getText();
 	}
 
 	

@@ -4,9 +4,10 @@ import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -43,9 +44,10 @@ public class MyHttpPost {
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
 			builder.addTextBody("username", l, ContentType.TEXT_PLAIN);
 			builder.addTextBody("password", p, ContentType.TEXT_PLAIN);
-			File file = new File("temp.png");
-			ImageIO.write(bufferedImage, "png", file);
-			builder.addBinaryBody("image", new FileInputStream(file),ContentType.APPLICATION_OCTET_STREAM, file.getName());
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			ImageIO.write(bufferedImage, "png", os);                          
+			InputStream is = new ByteArrayInputStream(os.toByteArray());
+			builder.addBinaryBody("image", is ,ContentType.APPLICATION_OCTET_STREAM, "temp.png");
 		    HttpEntity multipart = builder.build();
 			httppost.setEntity(multipart); 
 		    try (CloseableHttpResponse response = httpclient.execute(httppost)){
@@ -54,26 +56,23 @@ public class MyHttpPost {
 					while(sc.hasNext()) {
 					   s.add(sc.nextLine());
 					}
-					System.out.println(s);
-					if(s.size() == 3) {
-						str = "   Изображение сохранено и доступно по ссылке:" + " \n" + s.get(2) + "\n" + "Ссылка скопирована в буфер обмена.";
-						Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(s.get(2)),null);
-						SecondGUI.g1.setStatusPanelText(s.get(2));
+					if(s.size() > 1) {
+						Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(s.get(1)),null);
+						SecondGUI.g1.setStatusPanelText(s.get(1));
 						if(SecondGUI.link.size() > 9) {
 							List<String> templist = new ArrayList<String>();
 							templist = SecondGUI.link.subList(1, 10);
 							SecondGUI.link = templist;
 						}
-						SecondGUI.link.add(s.get(2));
+						SecondGUI.link.add(s.get(1));
 						ListToByte ltb = new ListToByte(SecondGUI.link);
 						byte[] bytes = ltb.getByte();
 						SecondGUI.userPrefsLink.putByteArray("value", bytes);
 						SecondGUI.updateLinkOnTray();
-					}
+						}
 					else str = s.get(0);
 				}
 		    }
-		    if(file.delete());
 	    }
 	    return str;
 	}
@@ -118,11 +117,7 @@ public class MyHttpPost {
 						while(sc.hasNext()) {
 							s.add(sc.nextLine());
 						}
-						System.out.println(s);
 					}
-				    if(s.size() > 1) {
-				    	OptionsGUI.setUserNameText(s.get(1));
-				    }
 			    }
 			}
 		} catch (HeadlessException e) {
@@ -139,7 +134,8 @@ public class MyHttpPost {
 			e.printStackTrace();
 		}
 		boolean b = false;
-		if(s.size() > 0) b = s.get(0).equals("yes");
+		if(s.size() > 0) b = s.get(0).equals("202");
+		if(b) OptionsGUI.setUserNameText(l);
 		return b;
 	}
 

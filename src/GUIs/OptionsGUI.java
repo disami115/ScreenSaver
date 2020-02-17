@@ -166,6 +166,7 @@ public class OptionsGUI extends JFrame{
 	
 	public static void setUserNameText(String s) {
 		userName.setText("Привет " + s);
+		userName.setVisible(true);
 	}
 	
 	private void createGUI() {
