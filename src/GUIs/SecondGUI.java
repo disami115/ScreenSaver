@@ -95,7 +95,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	private static LinkEventListener linkEvLists[];
 	public SecondGUI(Image img) throws IOException, URISyntaxException {
 		super("ScreenSaver");
-		this.setTitle("ScreenSaver LeadVertex.ru");
+		this.setTitle("LeadVertex Скриншот");
 		userPrefsPrtScr = Preferences.userRoot().node("config").node("enabledPrtScr");
 		isPrtScr = userPrefsPrtScr.getBoolean("value", isPrtScr);
 		userPrefsColor = Preferences.userRoot().node("config").node("Color");
@@ -120,7 +120,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		ByteToList btl = new ByteToList(bytes);
 		if(bytes != null) btl.getList();
 		
-		boolean b = false;  
+		boolean b = true;  
 		if(b) {
 			try {
 				GlobalScreen.registerNativeHook();
@@ -375,7 +375,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 
             });
 	    }
-	    
+	    this.collapse();
 	}
 	
 	public static void updateLinkOnTray() {
@@ -387,7 +387,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		}
 	}
 	
-	protected void collapse() {
+	public void collapse() {
 		isTray = true;
 		SecondGUI.this.setVisible(false);
         try {

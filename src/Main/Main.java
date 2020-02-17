@@ -16,6 +16,7 @@ public class Main extends JFrame {
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		BufferedImage img = new BufferedImage(1,1,BufferedImage.TYPE_INT_RGB);
 		SecondGUI window = new SecondGUI((Image)img);
+		window.collapse();
 		window.setVisible(true);
 	}
 }
