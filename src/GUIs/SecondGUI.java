@@ -119,8 +119,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		bytes = userPrefsLink.getByteArray("value", bytes);
 		ByteToList btl = new ByteToList(bytes);
 		if(bytes != null) btl.getList();
-		
-		boolean b = true;  
+		boolean b = true;   //false для отладки, true для релиза
 		if(b) {
 			try {
 				GlobalScreen.registerNativeHook();
@@ -153,7 +152,6 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 
         });
 		this.setLayout(new BorderLayout());
-		this.setVisible(true);
 		for(int i = 0; i < 3; i++) {
 			separator[i] = new JSeparator(JSeparator.VERTICAL);
 			separator[i].setOpaque(true);
@@ -374,6 +372,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 
             });
 	    }
+	    this.collapse();
 	}
 	
 	public static void updateLinkOnTray() {
@@ -432,6 +431,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		} catch (Exception e) {
 		    color = Color.black; // Not defined
 		}
+		changeNumber("DrawObjectNumberRect", 1);
 		g2.setDefault(Screen.grabScreen(), this);
 		g2.setVisible(true);
 		System.gc();

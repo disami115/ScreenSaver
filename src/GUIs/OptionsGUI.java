@@ -166,6 +166,9 @@ public class OptionsGUI extends JFrame{
 	
 	public static void setUserNameText(String s) {
 		userName.setText("Привет " + s);
+		int l = userName.getText().length();
+		int f = userName.getFont().getSize();
+		userName.setBounds(210 - (int) (l*f/3.4), 30, (int) ((l)*(f/1.7)), 20);
 		userName.setVisible(true);
 	}
 	

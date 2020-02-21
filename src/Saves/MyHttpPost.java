@@ -56,6 +56,7 @@ public class MyHttpPost {
 					while(sc.hasNext()) {
 					   s.add(sc.nextLine());
 					}
+					
 					if(s.size() > 1) {
 						Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(s.get(1)),null);
 						SecondGUI.g1.setStatusPanelText(s.get(1));

@@ -22,7 +22,6 @@ public class ByteToList {
 			while (in.available() > 0) {
 			    String element = in.readUTF();
 			    SecondGUI.link.add(element);
-			    System.out.println(SecondGUI.link.get(0));
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

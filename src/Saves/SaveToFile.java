@@ -63,7 +63,7 @@ public class SaveToFile extends JFrame
         	String type = fileChooser.getFileFilter().getDescription();
         	File file2 = new File(fileChooser.getSelectedFile() + "." + type);
         	try {  
-                System.out.println(fileChooser.getSelectedFile() + "." + type);
+                //System.out.println(fileChooser.getSelectedFile() + "." + type);
                 ImageIO.write(bf, type, file2);
             }  
             catch (Exception e1) {
