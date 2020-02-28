@@ -12,10 +12,11 @@ import MouseDraw.DrawObjectNumberRect;
 import MouseDraw.DrawObjectOne;
 import MouseDraw.DrawObjectRect;
 import MouseDraw.DrawObjectText;
+import Screens.Screen;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
  
@@ -53,6 +54,7 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
 	private boolean isMr;
     public static BufferedImage tempBf = null;
     public static Boolean isTextEnter = false;
+    public int X,Y;
     
     public enum DrawObjects{
     	DrawObjectBrush,
@@ -67,6 +69,19 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
     public MyCanvas(double zoom, Image img) {
         this.zoom = zoom;
         this.img = img;
+        
+        int w,h;
+        w = img.getWidth(null) + 29;
+        h = img.getHeight(null) + 105;
+        if(h > 504 || w > 880) {
+        	Rectangle maxBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        	if(h > maxBounds.height || w > maxBounds.width) {
+        		h = maxBounds.height - 95;
+        		w = maxBounds.width - 19;
+        	}
+        	SecondGUI.g1.setBounds(Screen.d.width/2 -(w/2), Screen.d.height/2 - (h/2), w, h);
+        }
+        changeXY();
         bufferedImage = new BufferedImage(this.img.getWidth(null), this.img.getHeight(null), BufferedImage.TYPE_INT_RGB);
         addMouseWheelListener(this);
         addMouseMotionListener(this);
@@ -78,16 +93,35 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
         listOfBf.add(img);
         numberOfGraphicsList = 0;
         initialSize = new Dimension(
-                  (int)(img.getWidth(null)*zoom),
-                  (int)(img.getHeight(null)*zoom));
+        	(int)(img.getWidth(null)*zoom),
+        	(int)(img.getHeight(null)*zoom));
         Dimension d = new Dimension(
-                (int)(initialSize.width*zoom),
-                (int)(initialSize.height*zoom));
-            setPreferredSize(d);
-            setSize(d);
+        	(int)(initialSize.width*zoom),
+        	(int)(initialSize.height*zoom));
+        setPreferredSize(d);
+        setSize(d);
+        
+        
     }
     
-    public void paint(Graphics g) {
+    private void changeXY() {
+    	int w,h;
+        if(SecondGUI.CanvPan != null) {
+        	w = SecondGUI.g1.getWidth() - 19;
+        	h = SecondGUI.g1.getHeight() - 95;
+        	if(SecondGUI.CanvPan.getSize().width < img.getWidth(null)) w = img.getWidth(null) ;
+        	if(SecondGUI.CanvPan.getSize().height < img.getHeight(null)) h = img.getHeight(null) ; 
+        }
+        else {
+        	w = 881;
+        	h = 505;
+        }
+        this.X = (Math.abs(w - img.getWidth(null)))/2;
+        this.Y = (Math.abs(h - img.getHeight(null)))/2;
+        
+	}
+
+	public void paint(Graphics g) {
     	this.paintComponent(g);
     }
     
@@ -138,6 +172,8 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        changeXY();
+        //CanvasPanel.changePanel(img.getWidth(null) + this.X, img.getHeight(null) + this.Y);
         Graphics2D g2s = bufferedImage.createGraphics();
         Graphics2D g2d = (Graphics2D) g.create();
         if(isPressed && dOs.name() == "DrawObjectBrush") g2s.drawImage(img, 0, 0, null);
@@ -151,27 +187,34 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
 					if(lastX != 0 && lastY != 0) 
 						{
 						DrawBrushLine bl = new DrawBrushLine(g2s,e);
-						g2s = (Graphics2D) bl.Draws(lastX, lastY, x2, y2, color);
+						g2s = (Graphics2D) bl.Draws(lastX - this.X, lastY - this.Y, x2 - this.X, y2 - this.Y, color);
 						}
 					lastX = x2;
 					lastY = y2;
 			}
+	        else if(isTextEnter) {
+	        	g2s = (Graphics2D) drawObj.Draws(x1, y1 , x2, y2, color);
+	        }
 	        else if(isReleased) {
-	        	g2s = (Graphics2D) drawObj.Draws(x1, y1, x2, y2, color);
+	        	g2s = (Graphics2D) drawObj.Draws(x1 - this.X, y1 - this.Y, x2 - this.X, y2 - this.Y, color);
 	        }
         }
         super.paintComponent(g2s);
         g2s.dispose();
 		img = bufferedImage;
-        if (img != null) {
-        	g2d.drawImage(img, 0, 0, null);
-        }
+		if (img != null) {
+			g2d.drawImage(img, this.X, this.Y, null);
+		}
+		
+        
         g2s.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         g2s.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF); 
     }
   
     protected void repaint(Graphics g, MouseEvent e) {
     	super.paintComponent(g);
+    	changeXY();
+    	CanvasPanel.changePanel(img.getWidth(null) + this.X + 20, img.getHeight(null) + this.Y + 20);
         x2 = e.getX();
 		y2 = e.getY();
 		x1 = rx1;
@@ -183,9 +226,9 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2d.drawImage(img, 0, 0, null);
     	setDrawObject(dOs,g2d);
-    	g2d = (Graphics2D) drawObj.Draws((int)(x1 * zoom), (int)(y1 *zoom), x2, y2, color);
+    	g2d = (Graphics2D) drawObj.Draws((int)(x1 - this.X * zoom), (int)(y1 - this.Y *zoom), x2 - this.X, y2 - this.Y, color);
         g2d.transform(tx);
-        g2s.drawImage(bufferedImage, 0, 0, null);
+        g2s.drawImage(bufferedImage, this.X, this.Y, null);
         g2d.dispose();
         g2s.dispose();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -216,21 +259,22 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
  
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-    	
+        Rectangle visibleRect = getVisibleRect();
+        int wr = -10*e.getWheelRotation();
+        if(SecG.isAlt) {
+        	scrollX = previousZoom*zoom - (wr-visibleRect.getX());
+        	scrollY = visibleRect.getY();
+        }
+        else {
+        	scrollX = visibleRect.getX();
+        	scrollY = previousZoom*zoom - (wr-visibleRect.getY());
+        }
+        visibleRect.setRect(scrollX, scrollY, visibleRect.getWidth(), visibleRect.getHeight());
+        scrollRectToVisible(visibleRect);
     }
 
     public void followMouseOrCenter(MouseWheelEvent e) {
-        Point2D point = e.getPoint();
-        Rectangle visibleRect = getVisibleRect();
-        if(e.getWheelRotation() == 1)
-        {
-        	scrollX = 0;///previousZoom*zoom - (1-visibleRect.getX());
-            scrollY = 0;///previousZoom*zoom - (1-visibleRect.getY());
-        }
-        scrollX = point.getX()/previousZoom*zoom - (point.getX()-visibleRect.getX());
-        scrollY = point.getY()/previousZoom*zoom - (point.getY()-visibleRect.getY());
-        visibleRect.setRect(scrollX, scrollY, visibleRect.getWidth(), visibleRect.getHeight());
-        scrollRectToVisible(visibleRect);
+        
     }
  
     
@@ -317,6 +361,8 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
         	SecondGUI.textField.setEditable(true);
         	r.height += 2;
         	r.width += 2;
+        	r.x += this.X;
+        	r.y += this.Y;
         	SecondGUI.textField.setBounds(r);
         	SecondGUI.textField.setText("");
         	SecondGUI.textField.setOpaque(false);

@@ -18,6 +18,7 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -76,7 +77,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	private TrayIcon icon = null;
 	private static ImageIcon imgico = null;
 	private Color color;
-	private boolean isCtrl = false, isTray = false;
+	public boolean isCtrl = false, isAlt = false, isTray = false;
 	private static boolean isPrtScr;
 	private JMenuBar BP = new JMenuBar();
 	private JColorChooser colorChooser = new JColorChooser();
@@ -93,6 +94,9 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	public static List<String> link = new ArrayList<String>();
 	public static Menu LinkItemMenu = new Menu("Загрузить с сервера");
 	private static LinkEventListener linkEvLists[];
+
+    public Border line = BorderFactory.createLineBorder(Color.BLUE);
+	
 	public SecondGUI(Image img) throws IOException, URISyntaxException {
 		super("ScreenSaver");
 		this.setTitle("LeadVertex Скриншот");
@@ -138,16 +142,20 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		c = new MyCanvas(1.0, img);
 		CanvPan = new CanvasPanel(true, c);
 		this.remove(CanvPan);
-		this.add(CanvPan, BorderLayout.CENTER);
+		this.add(CanvPan);
 		if(g2 == null) g2 = new SelectCoordGui(img, this);
 		this.setBounds(Screen.d.width/2 - 420, Screen.d.height/2 - 300, 900, 600);
+		this.setMaximumSize(new Dimension(1000, Screen.d.height - 95));
 		this.setMinimumSize(new Dimension(900, 300));
+		System.out.println(Screen.d.width);
+		
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			
             @Override
             public void windowClosing(WindowEvent e) {
-            	collapse();
+            	if(!isAlt) collapse();
+            	else System.exit(0);
             }
 
         });
@@ -157,6 +165,22 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 			separator[i].setOpaque(true);
 			separator[i].setMaximumSize(new Dimension(2, Button1.getHeight()));
 		}
+		Font f = new Font("Arial", 1, 8);
+		LineButton.setFont(f);
+		ArrowButton.setFont(f);
+		ScreenButton.setFont(f);
+        BrushButton.setFont(f);
+        TextButton.setFont(f);
+        BlurButton.setFont(f);
+        SaveButton.setFont(f);
+        RectangleButton.setFont(f);
+        SaveServButton.setFont(f);
+        ColorMenu.setFont(f);
+        BufferButton.setFont(f);
+        SizeMenu.setFont(f);
+        OptionButton.setFont(f);
+        BackButton.setFont(f);
+        NextButton.setFont(f);
 		LineButton.setToolTipText("Линия");
 		ArrowButton.setToolTipText("Стрелка");
         ScreenButton.setToolTipText("Сделать скриншот");
@@ -174,6 +198,21 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
         OptionButton.setToolTipText("Настройки");
         BackButton.setToolTipText("Отменить(Ctrl + Z)");
         NextButton.setToolTipText("Вернуть(Ctrl + Y)");
+        /*
+        LineButton.setText("Линия");
+		ArrowButton.setText("Стрелка");
+        ScreenButton.setText("Скриншот");
+        BrushButton.setText("Кисть");
+        TextButton.setText("Текст");
+        BlurButton.setText("Блюр");
+        SaveButton.setText("Сохр");
+        RectangleButton.setText("Прямоуг");
+        SaveServButton.setText("На сервер");
+        BufferButton.setText("В буфер");
+        OptionButton.setText("Настройки");
+        BackButton.setText("Отмена");
+        NextButton.setText("Вернуть");
+        */
 		LineButton.setIcon(setIcon("line.png"));
 		ArrowButton.setIcon(setIcon("arrow.png"));
         ScreenButton.setIcon(setIcon("screen.png"));
@@ -309,6 +348,12 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	        }
 	    };   
 	    
+	    ActionListener optionListener = new ActionListener() {
+	    	public void actionPerformed(ActionEvent e) {
+		    	openOptions();
+	    	}
+	    };
+	    
 	    ActionListener openListener = new ActionListener() {
 	        public void actionPerformed(ActionEvent e) {
 	        	Image openImg = null;
@@ -342,6 +387,8 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	 	    expandItem.addActionListener(expandListener);
 	 	    MenuItem aboutItem = new MenuItem("О программе");
 	 	    aboutItem.addActionListener(aboutListener);
+	 	    MenuItem optionItem = new MenuItem("Настройки");
+	 	    optionItem.addActionListener(optionListener);
 	 	    MenuItem ScreenItem = new MenuItem("Скрин");
 	 	    ScreenItem.addActionListener(new ScreenButtonEventListener());
 	 	    linkEvLists = new LinkEventListener[10];
@@ -353,6 +400,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	 	    popup.add(OpenItem);
 	 	    popup.add(LinkItemMenu);
 	 	    popup.add(expandItem);
+	 	    popup.add(optionItem);
 	 	    popup.add(aboutItem);
 	 	    popup.add(exitItem);
             icon = new TrayIcon(ico, "hello", popup);
@@ -455,6 +503,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		ssgui.setVisible(false);
 		if(isAuth) ssgui.trySave();
 		else setStatusPanelText("Пользователь не авторизован. Для авторизации зайдите в настройки.");
+		collapse();
 			//showMessageDialog(null, "Пользователь не авторизован. Для авторизации зайдите в настройки.");
 	}
 	
@@ -590,6 +639,40 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		}
 	}
 	
+	class MouseListen implements MouseListener {
+
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			LineButton.setBorder(line);
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
 	class NextButtonEventListener implements ActionListener {
 		
 		public void actionPerformed(ActionEvent e) {
@@ -642,8 +725,12 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	
 	class BufferButtonEventListener implements ActionListener {
 		
-		public class ImageTransferable implements Transferable
-	    {
+		public void actionPerformed(ActionEvent e) {
+			toBuffer();
+		}
+	}
+	
+	public class ImageTransferable implements Transferable {
 	        private Image image;
 
 	        public ImageTransferable (Image image)
@@ -672,15 +759,13 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	                throw new UnsupportedFlavorException(flavor);
 	            }
 			}
-	    }
-		
-		public void actionPerformed(ActionEvent e) {
-			
-			ImageTransferable transferable = new ImageTransferable( c.getImg());
-			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(transferable,null);
-		}
 	}
 	
+	public void toBuffer() {
+			ImageTransferable transferable = new ImageTransferable( c.getImg());
+			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(transferable,null);
+			collapse();
+	}
 	
 	protected void createColorChooser() {
 		
@@ -707,24 +792,30 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
-		if(e.getKeyCode() == NativeKeyEvent.VC_CONTROL) isCtrl = true;
-		
+		if(e.getKeyCode() == NativeKeyEvent.VC_CONTROL_L) isCtrl = true;
+		if(e.getKeyCode() == NativeKeyEvent.VC_ALT_L) isAlt = true;
 	}
 
 	@Override
 	public void nativeKeyReleased(NativeKeyEvent e) {
-		if(e.getKeyCode() == NativeKeyEvent.VC_CONTROL) isCtrl = false;
+		if(e.getKeyCode() == NativeKeyEvent.VC_CONTROL_L) isCtrl = false;
+		if(e.getKeyCode() == NativeKeyEvent.VC_ALT_L) {
+			isAlt = false;
+			System.out.println(isAlt);
+		}
 		if(g1.isFocused()) {
 			if(e.getKeyCode() == NativeKeyEvent.VC_Z && isCtrl) c.setLastGraphics((Graphics2D) c.getGraphics());	
 			if(e.getKeyCode() == NativeKeyEvent.VC_Y && isCtrl) c.setNextGraphics((Graphics2D) c.getGraphics());
 			if(e.getKeyCode() == NativeKeyEvent.VC_ENTER && isCtrl && !textField.isVisible()) doServerSave();
 			if(e.getKeyCode() == NativeKeyEvent.VC_S && isCtrl && g1.isFocused()) doSave();
+			if(e.getKeyCode() == NativeKeyEvent.VC_C && isCtrl && g1.isFocused()) toBuffer();
+			if(e.getKeyCode() == NativeKeyEvent.VC_F4 && isAlt && g1.isFocused()) System.exit(0);
 			if((c.dOs.name() == "DrawObjectOne" || c.dOs.name() == "DrawObjectNumberRect") && isCtrl) {
 				int i = e.getKeyCode() - 1;
 				if(i>0 && i<10) SecondGUI.changeNumber(c.dOs.name(), i);
 			}
 		}
-		if(e.getKeyCode() == NativeKeyEvent.VC_PRINTSCREEN && isPrtScr) doScreen();
+		if(e.getKeyCode() == NativeKeyEvent.VC_PRINTSCREEN && isPrtScr && !g2.isVisible()) doScreen();
 	}
 
 	@Override

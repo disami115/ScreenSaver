@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -17,6 +18,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import Screens.Screen;
@@ -41,7 +46,7 @@ public class SelectCoordGui extends JFrame implements MouseListener, MouseMotion
 	private ImageDraw imgD;
 	private Rectangle screenRect = null;
 	private static int lastX = 0, lastY = 0;	
-	public SelectCoordGui(Image img, SecondGUI SecG) {
+	public SelectCoordGui(Image img, SecondGUI SecG) throws IOException {
 		setDefault(img, SecG);
 		addKeyListener(this);
 		setUndecorated(true);
@@ -53,6 +58,9 @@ public class SelectCoordGui extends JFrame implements MouseListener, MouseMotion
 		}
 		d.setSize(screenRect.width, screenRect.height);
 	    this.setBounds(screenRect.x, screenRect.y, d.width, d.height);
+	    InputStream in = SecondGUI.class.getClassLoader().getResourceAsStream("screencrs.png");
+        Image curImage = ImageIO.read(in);
+	    this.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(curImage, new Point(19,19), "CustomCursor"));
 	    
 	}
 	
@@ -147,24 +155,30 @@ public class SelectCoordGui extends JFrame implements MouseListener, MouseMotion
 	
 	@Override
 	public void mousePressed(MouseEvent e) {
-		isPressed = true;
-		x1 = e.getX();
-		y1 = e.getY();
+		if(e.getButton() == MouseEvent.BUTTON3) cancelScreen();
+		else {
+			isPressed = true;
+			x1 = e.getX();
+			y1 = e.getY();
+		}
+		
 		
     }
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		x2 = e.getX() ;
-        y2 = e.getY() ;
-        Screen.setXYWH(x1,x2,y1,y2);
-        if(isPressed) img = bf.getSubimage(r.x, r.y, r.width+1, r.height+1);
-        lastX = r.x;
-        lastY = r.y;
-        SecG.setNewImage(img);
-        SecG.expand();
-		this.setVisible(false);
-		isPressed = false;
+		if(e.getButton() != MouseEvent.BUTTON3) {
+			x2 = e.getX() ;
+	        y2 = e.getY() ;
+	        Screen.setXYWH(x1,x2,y1,y2);
+	        if(isPressed) img = bf.getSubimage(r.x, r.y, r.width+1, r.height+1);
+	        lastX = r.x;
+	        lastY = r.y;
+	        SecG.setNewImage(img);
+	        SecG.expand();
+			this.setVisible(false);
+			isPressed = false;
+		}
 	}
 
 	@Override
@@ -181,9 +195,11 @@ public class SelectCoordGui extends JFrame implements MouseListener, MouseMotion
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		imgD = new ImageDraw(img, e);
-		imgD.repaint(getGraphics(), img);
-		getContentPane().add(imgD);
+		if(e.getButton() != MouseEvent.BUTTON3) {
+			imgD = new ImageDraw(img, e);
+			imgD.repaint(getGraphics(), img);
+			getContentPane().add(imgD);
+		}
 	}
 
 	@Override
@@ -193,7 +209,6 @@ public class SelectCoordGui extends JFrame implements MouseListener, MouseMotion
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -211,15 +226,19 @@ public class SelectCoordGui extends JFrame implements MouseListener, MouseMotion
 	@Override
 	public void keyReleased(KeyEvent e) {
 		if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-			int[] HW = SecG.getImgHW();
-			if(HW[0] == 0 || HW[1] == 0) {
-				img = bf.getSubimage(lastX, lastY, 1, 1);
-			}
-			else img = SecG.c.img;
-			SecG.setNewImage(img);
-			SecG.expand();
-			this.setVisible(false);
+			cancelScreen();
 		}
+	}
+
+	private void cancelScreen() {
+		int[] HW = SecG.getImgHW();
+		if(HW[0] == 0 || HW[1] == 0) {
+			img = bf.getSubimage(lastX, lastY, 1, 1);
+		}
+		else img = SecG.c.img;
+		SecG.setNewImage(img);
+		SecG.expand();
+		this.setVisible(false);
 	}
 	
 }
