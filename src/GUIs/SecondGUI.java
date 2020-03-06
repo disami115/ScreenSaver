@@ -32,6 +32,8 @@ import Canvas.CanvasPanel;
 import Canvas.MyCanvas;
 import Canvas.MyCanvas.DrawObjects;
 import Canvas.SystemColorChooserPanel;
+import MouseDraw.DrawObjectArrow;
+import MouseDraw.DrawObjectLine;
 import MouseDraw.DrawObjectNumberRect;
 import MouseDraw.DrawObjectOne;
 import Converter.ByteToList;
@@ -77,7 +79,7 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	private TrayIcon icon = null;
 	private static ImageIcon imgico = null;
 	private Color color;
-	public boolean isCtrl = false, isAlt = false, isTray = false;
+	public boolean isCtrl = false, isAlt = false, isShift = false, isTray = false;
 	private static boolean isPrtScr;
 	private JMenuBar BP = new JMenuBar();
 	private JColorChooser colorChooser = new JColorChooser();
@@ -536,24 +538,28 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	class ArrowButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			c.changeDrawObjects(DrawObjects.DrawObjectArrow.toString());
+			setCursor("cursor.png", 16, 16);
 		}
 	}
 	
 	class Button1EventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			c.changeDrawObjects(DrawObjects.DrawObjectOne.toString());
+			setCursor("cursor.png", 16, 16);
 		}
 	}
 
 	class NumberRectButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			c.changeDrawObjects(DrawObjects.DrawObjectNumberRect.toString());
+			setCursor("cursor.png", 16, 16);
 		}
 	}
 
 	class TextButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			c.changeDrawObjects(DrawObjects.DrawObjectText.toString());
+			setCursor("cursor.png", 16, 16);
 		}
 	}
 	
@@ -595,27 +601,43 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 		}
 	}
 	
+	public void setCursor(String name, int x, int y) {
+		InputStream in = SecondGUI.class.getClassLoader().getResourceAsStream(name);
+        Image curImage = null;
+		try {
+			curImage = ImageIO.read(in);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	    g1.c.setCursor(Toolkit.getDefaultToolkit().createCustomCursor(curImage, new Point(x, y), "CustomCursor"));
+	}
+	
 	class BrushButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			c.changeDrawObjects(DrawObjects.DrawObjectBrush.toString());
+			setCursor("c_brush.png", 5, 25);
 		}
 	}
 	
 	class BlurButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			c.changeDrawObjects(DrawObjects.DrawObjectBlur.toString());
+			setCursor("cursor.png", 16, 16);
 		}
 	}
 	
 	class LineButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			c.changeDrawObjects(DrawObjects.DrawObjectLine.toString());
+			setCursor("cursor.png", 16, 16);
 		}
 	}
 	
 	class RectangleButtonEventListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			c.changeDrawObjects(DrawObjects.DrawObjectRect.toString());
+			setCursor("cursor.png", 16, 16);
 		}
 	}
 
@@ -794,14 +816,22 @@ public class SecondGUI extends JFrame implements NativeKeyListener, KeyListener{
 	public void nativeKeyPressed(NativeKeyEvent e) {
 		if(e.getKeyCode() == NativeKeyEvent.VC_CONTROL_L) isCtrl = true;
 		if(e.getKeyCode() == NativeKeyEvent.VC_ALT_L) isAlt = true;
+		if(e.getKeyCode() == NativeKeyEvent.VC_SHIFT_L) {
+			isShift = true;
+			DrawObjectLine.setShift(isShift);
+			DrawObjectArrow.setShift(isShift);
+		}
+		
 	}
 
 	@Override
 	public void nativeKeyReleased(NativeKeyEvent e) {
 		if(e.getKeyCode() == NativeKeyEvent.VC_CONTROL_L) isCtrl = false;
-		if(e.getKeyCode() == NativeKeyEvent.VC_ALT_L) {
-			isAlt = false;
-			System.out.println(isAlt);
+		if(e.getKeyCode() == NativeKeyEvent.VC_ALT_L) isAlt = false;
+		if(e.getKeyCode() == NativeKeyEvent.VC_SHIFT_L) {
+			isShift = false;
+			DrawObjectLine.setShift(isShift);
+			DrawObjectArrow.setShift(isShift);
 		}
 		if(g1.isFocused()) {
 			if(e.getKeyCode() == NativeKeyEvent.VC_Z && isCtrl) c.setLastGraphics((Graphics2D) c.getGraphics());	

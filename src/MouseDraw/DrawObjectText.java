@@ -28,14 +28,14 @@ public class DrawObjectText extends DrawObject{
 		int h = MyCanvas.bufferedImage.getHeight();
 		g.setColor(c);
 		if(MyCanvas.isTextEnter) {
-			BufferedImage tempBf = new BufferedImage(w - r.x, h - r.y, BufferedImage.TYPE_INT_RGB);
+			BufferedImage tempBf = new BufferedImage(w - (r.x-SecondGUI.g1.c.X), h - (r.y-SecondGUI.g1.c.Y), BufferedImage.TYPE_INT_RGB);
 			Graphics2D g2s = tempBf.createGraphics();
-	        g2s.drawImage(MyCanvas.bufferedImage.getSubimage(r.x, r.y, w - r.x, h - r.y), 0, 0, null);
+	        g2s.drawImage(MyCanvas.bufferedImage.getSubimage(r.x-SecondGUI.g1.c.X, r.y-SecondGUI.g1.c.Y, w - (r.x-SecondGUI.g1.c.X), h - (r.y-SecondGUI.g1.c.Y)), 0, 0, null);
 			g2s.setColor(c);
 			SecondGUI.textField.setBorder(null);
 			SecondGUI.textField.setCaretColor(new Color(0,0,0,0));
 			SecondGUI.textField.paint(g2s);
-			g.drawImage(tempBf, r.x, r.y, null);
+			g.drawImage(tempBf, r.x-SecondGUI.g1.c.X, r.y-SecondGUI.g1.c.Y, null);
 		}
 		return g;
 	}

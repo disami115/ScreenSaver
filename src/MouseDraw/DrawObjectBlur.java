@@ -61,11 +61,20 @@ public class DrawObjectBlur extends DrawObject {
 		}
 	    Raster src = origin.getData();
 	    WritableRaster dest = src.createCompatibleWritableRaster();
+	   
 	    if(r.x < 0) r.x = 0;
-	    if(r.y < 0) r.y = 0;
+	    if(r.y < 0) r.y = 0; 
+	    int a = r.x + r.width;
+	    System.out.println(a + " " + MyCanvas.bufferedImage.getWidth(null));
+	    if(r.x + r.width + 6 > MyCanvas.bufferedImage.getWidth(null)) r.width = MyCanvas.bufferedImage.getWidth(null) - (r.x + 1);
+	    if(r.y + r.height + 6 > MyCanvas.bufferedImage.getHeight(null)) r.height = MyCanvas.bufferedImage.getHeight(null) - (r.y + 1);
+	    else System.out.println("NO");
+	    System.out.println(r.x + " " + r.width);
 	    for(int y = r.y; y < r.y + r.height + PIX_SIZE; y += PIX_SIZE) {
 	        for(int x = r.x; x < r.x + r.width + PIX_SIZE; x += PIX_SIZE) {
 	            double[] pixel = new double[3];
+	            if(x > r.x + r.width) x = r.x + r.width - 6;
+	            if(y > r.y + r.height) y = r.y + r.height - 6;
 	            pixel = src.getPixel(x, y, pixel);
 	            for(int yd = y; (yd < y + PIX_SIZE) && (yd < src.getHeight()); yd++) {
 	                for(int xd = x; (xd < x + PIX_SIZE) && (xd < src.getWidth()); xd++) {

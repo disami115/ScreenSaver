@@ -361,6 +361,12 @@ public class MyCanvas extends JComponent implements MouseWheelListener, MouseMot
         	SecondGUI.textField.setEditable(true);
         	r.height += 2;
         	r.width += 2;
+        	if(r.width > bufferedImage.getWidth()) r.width = bufferedImage.getWidth();
+        	if(r.height > bufferedImage.getHeight()) r.height = bufferedImage.getHeight();
+        	if(r.x < 0) r.x = 0;
+        	if(r.y < 0) r.y = 0;
+        	if(r.x + r.width > bufferedImage.getWidth()) r.x = bufferedImage.getWidth() - r.width;
+        	if(r.y + r.height > bufferedImage.getHeight()) r.y = bufferedImage.getHeight() - r.height;
         	r.x += this.X;
         	r.y += this.Y;
         	SecondGUI.textField.setBounds(r);
